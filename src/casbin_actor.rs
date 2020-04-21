@@ -1,6 +1,7 @@
 use actix::prelude::*;
 use casbin::prelude::*;
-use casbin::Result;
+use casbin::{Error as CasbinError, Result};
+use std::io::{Error, ErrorKind};
 use std::sync::Arc;
 
 pub enum CasbinCmd {
@@ -45,12 +46,17 @@ impl Handler<CasbinCmd> for CasbinActor {
     fn handle(&mut self, msg: CasbinCmd, _: &mut Self::Context) -> Self::Result {
         let e = match &self.enforcer {
             Some(x) => x,
-            None => panic!("Enforcer needed"),
+            None => {
+                return Box::new(actix::fut::err(CasbinError::IoError(Error::new(
+                    ErrorKind::NotConnected,
+                    "Enforcer needed!",
+                ))))
+            }
         };
         let cloned_enforcer = Arc::clone(e);
         Box::new(
             async move {
-                let mut lock = cloned_enforcer.try_write().unwrap();
+                let mut lock = cloned_enforcer.write().await;
                 let result = match msg {
                     CasbinCmd::Enforce(str) => lock.enforce(&str).await,
                     CasbinCmd::AddPolicy(str) => lock.add_policy(str).await,
