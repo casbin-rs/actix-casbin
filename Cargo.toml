@@ -8,6 +8,12 @@ description = "An Actix actor for casbin"
 homepage="https://github.com/casbin-rs/actix-casbin"
 readme="README.md"
 
+[lib]
+name = "actix_casbin"
+path = "src/lib.rs"
+
 [dependencies]
 actix = "0.9.0"
-casbin = "0.5.2"
+casbin = "0.6.0"
+actix-rt = "1.1.0"
+async-std = "1.5.0"
