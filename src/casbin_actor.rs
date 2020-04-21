@@ -22,10 +22,10 @@ pub struct CasbinActor {
 
 impl CasbinActor {
     pub async fn new<M: TryIntoModel, A: TryIntoAdapter>(m: M, a: A) -> Addr<CasbinActor> {
-            let enforcer: Enforcer = Enforcer::new(m, a).await.unwrap();
-            Supervisor::start(|_| CasbinActor {
-                enforcer: Some(Arc::new(async_std::sync::RwLock::new(enforcer))),
-            })
+        let enforcer: Enforcer = Enforcer::new(m, a).await.unwrap();
+        Supervisor::start(|_| CasbinActor {
+            enforcer: Some(Arc::new(async_std::sync::RwLock::new(enforcer))),
+        })
     }
 }
 
