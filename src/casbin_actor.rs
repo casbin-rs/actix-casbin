@@ -2,6 +2,7 @@ use actix::prelude::*;
 use casbin::prelude::*;
 use casbin::{Error as CasbinError, Result};
 use std::io::{Error, ErrorKind};
+use std::marker::Unpin;
 use std::sync::Arc;
 
 pub enum CasbinCmd {
@@ -17,30 +18,49 @@ impl Message for CasbinCmd {
     type Result = Result<bool>;
 }
 
-pub struct CasbinActor {
+pub struct CasbinActor<
+    M: TryIntoModel + Clone + Unpin + 'static,
+    A: TryIntoAdapter + Clone + Unpin + 'static,
+> {
+    model: M,
+    adapter: A,
     enforcer: Option<Arc<async_std::sync::RwLock<Enforcer>>>,
 }
 
-impl CasbinActor {
-    pub async fn new<M: TryIntoModel, A: TryIntoAdapter>(m: M, a: A) -> Addr<CasbinActor> {
+impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpin + 'static>
+    CasbinActor<M, A>
+{
+    pub async fn new(m: M, a: A) -> Addr<CasbinActor<M, A>> {
+        let clone_m = m.clone();
+        let clone_a = a.clone();
         let enforcer: Enforcer = Enforcer::new(m, a).await.unwrap();
         Supervisor::start(|_| CasbinActor {
+            model: clone_m,
+            adapter: clone_a,
             enforcer: Some(Arc::new(async_std::sync::RwLock::new(enforcer))),
         })
     }
 }
 
-impl Actor for CasbinActor {
+impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpin + 'static> Actor
+    for CasbinActor<M, A>
+{
     type Context = Context<Self>;
+
+    fn started(&mut self, ctx: &mut Context<Self>) {}
 }
 
-impl Supervised for CasbinActor {
+impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpin + 'static>
+    Supervised for CasbinActor<M, A>
+{
     fn restarting(&mut self, _: &mut Self::Context) {
         self.enforcer.take();
     }
 }
 
-impl Handler<CasbinCmd> for CasbinActor {
+impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpin + 'static>
+    Handler<CasbinCmd> for CasbinActor<M, A>
+{
     type Result = ResponseActFuture<Self, Result<bool>>;
 
     fn handle(&mut self, msg: CasbinCmd, _: &mut Self::Context) -> Self::Result {
