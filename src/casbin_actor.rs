@@ -2,7 +2,6 @@ use actix::prelude::*;
 use casbin::prelude::*;
 use casbin::{Error as CasbinError, Result};
 use std::io::{Error, ErrorKind};
-use std::marker::Unpin;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -19,49 +18,30 @@ impl Message for CasbinCmd {
     type Result = Result<bool>;
 }
 
-pub struct CasbinActor<
-    M: TryIntoModel + Clone + Unpin + 'static,
-    A: TryIntoAdapter + Clone + Unpin + 'static,
-> {
-    model: M,
-    adapter: A,
+pub struct CasbinActor {
     enforcer: Option<Arc<RwLock<Enforcer>>>,
 }
 
-impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpin + 'static>
-    CasbinActor<M, A>
-{
-    pub async fn new(m: M, a: A) -> Addr<CasbinActor<M, A>> {
-        let clone_m = m.clone();
-        let clone_a = a.clone();
+impl CasbinActor {
+    pub async fn new<M: TryIntoModel, A: TryIntoAdapter>(m: M, a: A) -> Addr<CasbinActor> {
         let enforcer: Enforcer = Enforcer::new(m, a).await.unwrap();
         Supervisor::start(|_| CasbinActor {
-            model: clone_m,
-            adapter: clone_a,
             enforcer: Some(Arc::new(RwLock::new(enforcer))),
         })
     }
 }
 
-impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpin + 'static> Actor
-    for CasbinActor<M, A>
-{
+impl Actor for CasbinActor {
     type Context = Context<Self>;
-
-    fn started(&mut self, ctx: &mut Context<Self>) {}
 }
 
-impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpin + 'static>
-    Supervised for CasbinActor<M, A>
-{
+impl Supervised for CasbinActor {
     fn restarting(&mut self, _: &mut Self::Context) {
         self.enforcer.take();
     }
 }
 
-impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpin + 'static>
-    Handler<CasbinCmd> for CasbinActor<M, A>
-{
+impl Handler<CasbinCmd> for CasbinActor {
     type Result = ResponseActFuture<Self, Result<bool>>;
 
     fn handle(&mut self, msg: CasbinCmd, _: &mut Self::Context) -> Self::Result {
