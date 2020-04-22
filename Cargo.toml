@@ -14,6 +14,6 @@ path = "src/lib.rs"
 
 [dependencies]
 actix = "0.9.0"
-casbin = "0.6.0"
+casbin =  "0.6.0"
 actix-rt = "1.1.0"
-async-std = "1.5.0"
+tokio = { version = "0.2.18", features = ["sync"] }

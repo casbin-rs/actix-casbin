@@ -4,6 +4,7 @@ use casbin::{Error as CasbinError, Result};
 use std::io::{Error, ErrorKind};
 use std::marker::Unpin;
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub enum CasbinCmd {
     Enforce(Vec<String>),
@@ -24,7 +25,7 @@ pub struct CasbinActor<
 > {
     model: M,
     adapter: A,
-    enforcer: Option<Arc<async_std::sync::RwLock<Enforcer>>>,
+    enforcer: Option<Arc<RwLock<Enforcer>>>,
 }
 
 impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpin + 'static>
@@ -37,7 +38,7 @@ impl<M: TryIntoModel + Clone + Unpin + 'static, A: TryIntoAdapter + Clone + Unpi
         Supervisor::start(|_| CasbinActor {
             model: clone_m,
             adapter: clone_a,
-            enforcer: Some(Arc::new(async_std::sync::RwLock::new(enforcer))),
+            enforcer: Some(Arc::new(RwLock::new(enforcer))),
         })
     }
 }
