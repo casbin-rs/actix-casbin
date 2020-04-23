@@ -12,10 +12,31 @@ pub enum CasbinCmd {
     RemovePolicy(Vec<String>),
     RemovePolicies(Vec<Vec<String>>),
     RemoveFilteredPolicy(usize, Vec<String>),
+    AddRoleForUser(String, String, Option<String>),
+    AddRolesForUser(String, Vec<String>, Option<String>),
+    DeleteRoleForUser(String, String, Option<String>),
+    DeleteRolesForUser(String, Option<String>),
+    GetImplicitRolesForUser(String, Option<String>),
+    GetImplicitPermissionsForUser(String, Option<String>),
+}
+
+pub enum CasbinResult {
+    Enforce(bool),
+    AddPolicy(bool),
+    AddPolicies(bool),
+    RemovePolicy(bool),
+    RemovePolicies(bool),
+    RemoveFilteredPolicy(bool),
+    AddRoleForUser(bool),
+    AddRolesForUser(bool),
+    DeleteRoleForUser(bool),
+    DeleteRolesForUser(bool),
+    GetImplicitRolesForUser(Vec<String>),
+    GetImplicitPermissionsForUser(Vec<Vec<String>>),
 }
 
 impl Message for CasbinCmd {
-    type Result = Result<bool>;
+    type Result = Result<CasbinResult>;
 }
 
 pub struct CasbinActor {
@@ -42,7 +63,7 @@ impl Supervised for CasbinActor {
 }
 
 impl Handler<CasbinCmd> for CasbinActor {
-    type Result = ResponseActFuture<Self, Result<bool>>;
+    type Result = ResponseActFuture<Self, Result<CasbinResult>>;
 
     fn handle(&mut self, msg: CasbinCmd, _: &mut Self::Context) -> Self::Result {
         let e = match &self.enforcer {
@@ -59,13 +80,50 @@ impl Handler<CasbinCmd> for CasbinActor {
             async move {
                 let mut lock = cloned_enforcer.write().await;
                 let result = match msg {
-                    CasbinCmd::Enforce(str) => lock.enforce(&str).await,
-                    CasbinCmd::AddPolicy(str) => lock.add_policy(str).await,
-                    CasbinCmd::AddPolicies(str) => lock.add_policies(str).await,
-                    CasbinCmd::RemovePolicy(str) => lock.remove_policy(str).await,
-                    CasbinCmd::RemovePolicies(str) => lock.remove_policies(str).await,
-                    CasbinCmd::RemoveFilteredPolicy(idx, str) => {
-                        lock.remove_filtered_policy(idx, str).await
+                    CasbinCmd::Enforce(str) => lock.enforce(&str).await.map(CasbinResult::Enforce),
+                    CasbinCmd::AddPolicy(str) => {
+                        lock.add_policy(str).await.map(CasbinResult::AddPolicy)
+                    }
+                    CasbinCmd::AddPolicies(str) => {
+                        lock.add_policies(str).await.map(CasbinResult::AddPolicies)
+                    }
+                    CasbinCmd::RemovePolicy(str) => lock
+                        .remove_policy(str)
+                        .await
+                        .map(CasbinResult::RemovePolicy),
+                    CasbinCmd::RemovePolicies(str) => lock
+                        .remove_policies(str)
+                        .await
+                        .map(CasbinResult::RemovePolicies),
+                    CasbinCmd::RemoveFilteredPolicy(idx, str) => lock
+                        .remove_filtered_policy(idx, str)
+                        .await
+                        .map(CasbinResult::RemoveFilteredPolicy),
+                    CasbinCmd::AddRoleForUser(user, roles, domain) => lock
+                        .add_role_for_user(&user, &roles, domain.as_deref())
+                        .await
+                        .map(CasbinResult::AddRoleForUser),
+                    CasbinCmd::AddRolesForUser(user, roles, domain) => lock
+                        .add_roles_for_user(&user, roles, domain.as_deref())
+                        .await
+                        .map(CasbinResult::AddRolesForUser),
+                    CasbinCmd::DeleteRoleForUser(user, roles, domain) => lock
+                        .delete_role_for_user(&user, &roles, domain.as_deref())
+                        .await
+                        .map(CasbinResult::DeleteRoleForUser),
+                    CasbinCmd::DeleteRolesForUser(user, domain) => lock
+                        .delete_roles_for_user(&user, domain.as_deref())
+                        .await
+                        .map(CasbinResult::DeleteRolesForUser),
+                    CasbinCmd::GetImplicitRolesForUser(name, domain) => {
+                        Ok(CasbinResult::GetImplicitRolesForUser(
+                            lock.get_implicit_roles_for_user(&name, domain.as_deref()),
+                        ))
+                    }
+                    CasbinCmd::GetImplicitPermissionsForUser(name, domain) => {
+                        Ok(CasbinResult::GetImplicitPermissionsForUser(
+                            lock.get_implicit_permissions_for_user(&name, domain.as_deref()),
+                        ))
                     }
                 };
                 result
