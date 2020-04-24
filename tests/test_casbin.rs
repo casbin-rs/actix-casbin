@@ -7,7 +7,7 @@ async fn test_enforcer() {
         .await
         .unwrap();
     let a = FileAdapter::new("examples/rbac_policy.csv");
-    let addr = CasbinActor::new(m, a).await;
+    let addr = CasbinActor::new(m, a).await.unwrap();
     if let CasbinResult::Enforce(test_enforce) = addr
         .send(CasbinCmd::Enforce(
             vec!["alice", "data1", "read"]
@@ -25,14 +25,13 @@ async fn test_enforcer() {
 
 #[actix_rt::test]
 async fn test_enforcer_threads() {
-    use std::thread;
     let m = DefaultModel::from_file("examples/rbac_model.conf")
         .await
         .unwrap();
     let a = FileAdapter::new("examples/rbac_policy.csv");
-    let addr = CasbinActor::new(m, a).await;
+    let addr = CasbinActor::new(m, a).await.unwrap();
 
-    for i in 0..8 {
+    for _ in 0..8 {
         let clone_addr = addr.clone();
         tokio::spawn(async move {
             if let CasbinResult::Enforce(test_enforce) = clone_addr

@@ -3,7 +3,12 @@ use casbin::prelude::*;
 use casbin::{Error as CasbinError, Result};
 use std::io::{Error, ErrorKind};
 use std::sync::Arc;
+
+#[cfg(feature = "runtime-tokio")]
 use tokio::sync::RwLock;
+
+#[cfg(feature = "runtime-async-std")]
+use async_std::sync::RwLock;
 
 pub enum CasbinCmd {
     Enforce(Vec<String>),
@@ -44,11 +49,11 @@ pub struct CasbinActor {
 }
 
 impl CasbinActor {
-    pub async fn new<M: TryIntoModel, A: TryIntoAdapter>(m: M, a: A) -> Addr<CasbinActor> {
-        let enforcer: Enforcer = Enforcer::new(m, a).await.unwrap();
-        Supervisor::start(|_| CasbinActor {
+    pub async fn new<M: TryIntoModel, A: TryIntoAdapter>(m: M, a: A) -> Result<Addr<CasbinActor>> {
+        let enforcer: Enforcer = Enforcer::new(m, a).await?;
+        Ok(Supervisor::start(|_| CasbinActor {
             enforcer: Some(Arc::new(RwLock::new(enforcer))),
-        })
+        }))
     }
 }
 
@@ -71,7 +76,7 @@ impl Handler<CasbinCmd> for CasbinActor {
             None => {
                 return Box::new(actix::fut::err(CasbinError::IoError(Error::new(
                     ErrorKind::NotConnected,
-                    "Enforcer needed!",
+                    "Enforcer droped!",
                 ))))
             }
         };

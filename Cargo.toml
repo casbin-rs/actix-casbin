@@ -13,10 +13,17 @@ name = "actix_casbin"
 path = "src/lib.rs"
 
 [dependencies]
-actix = "0.9.0"
-casbin =  "0.6.0"
-actix-rt = "1.1.0"
-tokio = { version = "0.2.18", features = ["sync"] }
+actix =  "0.9.0"
+casbin = { version = "0.6.0", default-features = false, optional = true }
+tokio = { version = "0.2.18", default-features = false, optional = true }
+async-std = { version = "1.5.0", default-features = false, optional = true }
+
+[features]
+default = ["runtime-tokio"]
+
+runtime-tokio = ["casbin/runtime-tokio", "tokio/sync"]
+runtime-async-std = ["casbin/runtime-async-std", "async-std/std"]
 
 [dev-dependencies]
 tokio = { version = "0.2.18", features = [ "full" ] }
+actix-rt = "1.1.0"
