@@ -21,8 +21,8 @@ actix-rt = "1.1.0"
 # Example
 
 ```rust
-use casbin::prelude::*;
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
+use casbin::prelude::*;
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
@@ -30,7 +30,9 @@ async fn main() -> Result<()> {
         .await
         .unwrap();
     let a = FileAdapter::new("examples/rbac_policy.csv");
+
     let addr = CasbinActor::new(m, a).await.unwrap();
+
     if let CasbinResult::Enforce(test_enforce) = addr
         .send(CasbinCmd::Enforce(
             vec!["alice", "data1", "read"]
@@ -42,16 +44,13 @@ async fn main() -> Result<()> {
         .unwrap()
         .unwrap()
     {
-        if test_enforce{
+        if test_enforce {
             println!("Enforce Pass");
-        }
-        else{
+        } else {
             println!("Enforce Fail");
         }
-
         Ok(())
-    }
-    else {
+    } else {
         panic!("Actor Error");
     }
 }
