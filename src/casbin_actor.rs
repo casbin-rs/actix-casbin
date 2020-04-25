@@ -84,7 +84,7 @@ impl Handler<CasbinCmd> for CasbinActor {
         Box::new(
             async move {
                 let mut lock = cloned_enforcer.write().await;
-                let result = match msg {
+                match msg {
                     CasbinCmd::Enforce(str) => lock.enforce(&str).await.map(CasbinResult::Enforce),
                     CasbinCmd::AddPolicy(str) => {
                         lock.add_policy(str).await.map(CasbinResult::AddPolicy)
@@ -130,8 +130,7 @@ impl Handler<CasbinCmd> for CasbinActor {
                             lock.get_implicit_permissions_for_user(&name, domain.as_deref()),
                         ))
                     }
-                };
-                result
+                }
             }
             .into_actor(self)
             .map(|res, _act, _ctx| res),
