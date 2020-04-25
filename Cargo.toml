@@ -26,4 +26,5 @@ runtime-async-std = ["casbin/runtime-async-std", "async-std/std"]
 
 [dev-dependencies]
 tokio = { version = "0.2.18", features = [ "full" ] }
+async-std = { version = "1.5.0", features = [ "attributes" ] }
 actix-rt = "1.1.0"
