@@ -33,43 +33,21 @@ async fn test_enforcer_threads() {
 
     for _ in 0..8 {
         let clone_addr = addr.clone();
-        #[cfg(feature = "runtime-tokio")]
-        {
-            tokio::spawn(async move {
-                if let CasbinResult::Enforce(test_enforce) = clone_addr
-                    .send(CasbinCmd::Enforce(
-                        vec!["alice", "data1", "read"]
-                            .iter()
-                            .map(|s| s.to_string())
-                            .collect(),
-                    ))
-                    .await
-                    .unwrap()
-                    .unwrap()
-                {
-                    assert_eq!(true, test_enforce);
-                }
-            });
-        }
-
-        #[cfg(feature = "runtime-async-std")]
-        {
-            async_std::task::spawn(async move {
-                if let CasbinResult::Enforce(test_enforce) = clone_addr
-                    .send(CasbinCmd::Enforce(
-                        vec!["alice", "data1", "read"]
-                            .iter()
-                            .map(|s| s.to_string())
-                            .collect(),
-                    ))
-                    .await
-                    .unwrap()
-                    .unwrap()
-                {
-                    assert_eq!(true, test_enforce);
-                }
-            });
-        }
+        tokio::spawn(async move {
+            if let CasbinResult::Enforce(test_enforce) = clone_addr
+                .send(CasbinCmd::Enforce(
+                    vec!["alice", "data1", "read"]
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect(),
+                ))
+                .await
+                .unwrap()
+                .unwrap()
+            {
+                assert_eq!(true, test_enforce);
+            }
+        });
     }
 }
 
