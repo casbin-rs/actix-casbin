@@ -12,8 +12,8 @@
 Add it to `Cargo.toml`
 
 ```rust
-casbin = { version = "0.6.0", default-features = false}
-actix-casbin = { version = "0.1.0"}
+casbin = "0.6.0"
+actix-casbin = "0.1.0"
 actix-rt = "1.1.0"
 ```
 
