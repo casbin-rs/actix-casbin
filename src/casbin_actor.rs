@@ -85,23 +85,26 @@ impl Handler<CasbinCmd> for CasbinActor {
             async move {
                 let mut lock = cloned_enforcer.write().await;
                 match msg {
-                    CasbinCmd::Enforce(str) => lock.enforce(&str).await.map(CasbinResult::Enforce),
-                    CasbinCmd::AddPolicy(str) => {
-                        lock.add_policy(str).await.map(CasbinResult::AddPolicy)
+                    CasbinCmd::Enforce(policy) => {
+                        lock.enforce(&policy).await.map(CasbinResult::Enforce)
                     }
-                    CasbinCmd::AddPolicies(str) => {
-                        lock.add_policies(str).await.map(CasbinResult::AddPolicies)
+                    CasbinCmd::AddPolicy(policy) => {
+                        lock.add_policy(policy).await.map(CasbinResult::AddPolicy)
                     }
-                    CasbinCmd::RemovePolicy(str) => lock
-                        .remove_policy(str)
+                    CasbinCmd::AddPolicies(policy) => lock
+                        .add_policies(policy)
+                        .await
+                        .map(CasbinResult::AddPolicies),
+                    CasbinCmd::RemovePolicy(policy) => lock
+                        .remove_policy(policy)
                         .await
                         .map(CasbinResult::RemovePolicy),
-                    CasbinCmd::RemovePolicies(str) => lock
-                        .remove_policies(str)
+                    CasbinCmd::RemovePolicies(policy) => lock
+                        .remove_policies(policy)
                         .await
                         .map(CasbinResult::RemovePolicies),
-                    CasbinCmd::RemoveFilteredPolicy(idx, str) => lock
-                        .remove_filtered_policy(idx, str)
+                    CasbinCmd::RemoveFilteredPolicy(idx, policy) => lock
+                        .remove_filtered_policy(idx, policy)
                         .await
                         .map(CasbinResult::RemoveFilteredPolicy),
                     CasbinCmd::AddRoleForUser(user, roles, domain) => lock
