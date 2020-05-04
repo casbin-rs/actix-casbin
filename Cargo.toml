@@ -14,8 +14,8 @@ path = "src/lib.rs"
 
 [dependencies]
 actix =  "0.9.0"
-casbin = { version = "0.6.0", default-features = false, optional = true }
-tokio = { version = "0.2.19", default-features = false, optional = true }
+casbin = { version = "0.6.2", default-features = false }
+tokio = { version = "0.2.20", default-features = false, optional = true }
 async-std = { version = "1.5.0", default-features = false, optional = true }
 
 [features]
@@ -25,6 +25,6 @@ runtime-tokio = ["casbin/runtime-tokio", "tokio/sync"]
 runtime-async-std = ["casbin/runtime-async-std", "async-std/std"]
 
 [dev-dependencies]
-tokio = { version = "0.2.19", features = [ "full" ] }
+tokio = { version = "0.2.20", features = [ "full" ] }
 async-std = { version = "1.5.0", features = [ "attributes" ] }
 actix-rt = "1.1.0"
