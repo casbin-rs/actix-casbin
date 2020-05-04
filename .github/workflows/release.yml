@@ -20,7 +20,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          default: true
+          override: true
 
       - name: Cargo Login
         uses: actions-rs/cargo@v1
