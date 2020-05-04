@@ -1,8 +1,8 @@
-# Actix casbin
+# Actix Casbin
 
 [![Crates.io](https://meritbadge.herokuapp.com/actix-casbin)](https://crates.io/crates/actix-casbin)
 [![Docs](https://docs.rs/actix-casbin/badge.svg)](https://docs.rs/actix-casbin)
-[![Build Status](https://travis-ci.org/casbin-rs/actix-casbin.svg?branch=master)](https://travis-ci.org/casbin-rs/actix-casbin)
+[![Auto Build](https://github.com/casbin-rs/actix-casbin/workflows/Auto%20Build/badge.svg)](https://github.com/casbin-rs/actix-casbin/actions/)
 [![codecov](https://codecov.io/gh/casbin-rs/actix-casbin/branch/master/graph/badge.svg)](https://codecov.io/gh/casbin-rs/actix-casbin)
 
 [Casbin](https://github.com/casbin/casbin-rs) intergration for [actix](https://github.com/actix/actix) framework
@@ -18,7 +18,7 @@ actix-rt = "1.1.0"
 ```
 
 
-# Example
+## Example
 
 ```rust
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
