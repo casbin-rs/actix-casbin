@@ -12,7 +12,6 @@
 Add it to `Cargo.toml`
 
 ```rust
-casbin = { version = "0.6.2", default-features = false }
 actix-casbin = "0.1.1"
 actix-rt = "1.1.0"
 ```
@@ -22,7 +21,7 @@ actix-rt = "1.1.0"
 
 ```rust
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
-use casbin::prelude::*;
+use actix_casbin::casbin::prelude::*;
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
