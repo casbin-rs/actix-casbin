@@ -12,7 +12,7 @@
 Add it to `Cargo.toml`
 
 ```rust
-actix-casbin = "0.1.1"
+actix-casbin = "0.2.0"
 actix-rt = "1.1.0"
 ```
 
