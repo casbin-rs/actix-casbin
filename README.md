@@ -13,45 +13,43 @@ Add it to `Cargo.toml`
 
 ```rust
 actix-casbin = "0.2.0"
-actix-rt = "1.1.0"
+actix-rt = "1.1.1"
 ```
 
 
 ## Example
 
 ```rust
+use actix_casbin::casbin::{DefaultModel, FileAdapter, Result};
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
-use actix_casbin::casbin::prelude::*;
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
-    let m = DefaultModel::from_file("examples/rbac_model.conf")
-        .await
-        .unwrap();
+    let m = DefaultModel::from_file("examples/rbac_model.conf").await?;
+
     let a = FileAdapter::new("examples/rbac_policy.csv");
 
-    let addr = CasbinActor::new(m, a).await.unwrap();
+    let addr = CasbinActor::new(m, a).await?;
 
-    if let CasbinResult::Enforce(test_enforce) = addr
+    let res = addr
         .send(CasbinCmd::Enforce(
             vec!["alice", "data1", "read"]
                 .iter()
-                .map(|s| s.to_string())
+                .map(|s| (*s).to_string())
                 .collect(),
         ))
-        .await
-        .unwrap()
-        .unwrap()
-    {
-        if test_enforce {
-            println!("Enforce Pass");
-        } else {
-            println!("Enforce Fail");
-        }
-        Ok(())
+        .await;
+
+    let test_enforce = match res {
+        Ok(Ok(CasbinResult::Enforce(result))) => result,
+        _ => panic!("Actor Error"),
+    };
+    if test_enforce {
+        println!("Enforce Pass");
     } else {
-        panic!("Actor Error");
+        println!("Enforce Fail");
     }
+    Ok(())
 }
 ```
 
