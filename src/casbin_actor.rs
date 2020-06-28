@@ -85,9 +85,7 @@ impl Handler<CasbinCmd> for CasbinActor {
             async move {
                 let mut lock = cloned_enforcer.write().await;
                 match msg {
-                    CasbinCmd::Enforce(policy) => {
-                        lock.enforce(&policy).map(CasbinResult::Enforce)
-                    }
+                    CasbinCmd::Enforce(policy) => lock.enforce(&policy).map(CasbinResult::Enforce),
                     CasbinCmd::AddPolicy(policy) => {
                         lock.add_policy(policy).await.map(CasbinResult::AddPolicy)
                     }
