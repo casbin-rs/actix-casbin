@@ -57,9 +57,7 @@ impl CasbinActor {
     }
 
     pub async fn set_enforcer(e: Arc<RwLock<CachedEnforcer>>) -> Result<Addr<CasbinActor>> {
-        Ok(Supervisor::start(|_| CasbinActor {
-            enforcer: Some(e),
-        }))
+        Ok(Supervisor::start(|_| CasbinActor { enforcer: Some(e) }))
     }
 }
 
