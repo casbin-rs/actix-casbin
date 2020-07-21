@@ -45,14 +45,20 @@ impl Message for CasbinCmd {
 }
 
 pub struct CasbinActor {
-    enforcer: Option<Arc<RwLock<Enforcer>>>,
+    enforcer: Option<Arc<RwLock<CachedEnforcer>>>,
 }
 
 impl CasbinActor {
     pub async fn new<M: TryIntoModel, A: TryIntoAdapter>(m: M, a: A) -> Result<Addr<CasbinActor>> {
-        let enforcer: Enforcer = Enforcer::new(m, a).await?;
+        let enforcer: CachedEnforcer = CachedEnforcer::new(m, a).await?;
         Ok(Supervisor::start(|_| CasbinActor {
             enforcer: Some(Arc::new(RwLock::new(enforcer))),
+        }))
+    }
+
+    pub async fn set_enforcer(e: Arc<RwLock<CachedEnforcer>>) -> Result<Addr<CasbinActor>> {
+        Ok(Supervisor::start(|_| CasbinActor {
+            enforcer: Some(e),
         }))
     }
 }
