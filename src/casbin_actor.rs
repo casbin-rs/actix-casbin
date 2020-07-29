@@ -1,6 +1,6 @@
 use actix::prelude::*;
 use casbin::prelude::*;
-use casbin::{Error as CasbinError, Result};
+use casbin::{Error as CasbinError, IEnforcer, Result};
 use std::io::{Error, ErrorKind};
 use std::sync::Arc;
 
@@ -44,30 +44,41 @@ impl Message for CasbinCmd {
     type Result = Result<CasbinResult>;
 }
 
-pub struct CasbinActor {
-    enforcer: Option<Arc<RwLock<Enforcer>>>,
+pub struct CasbinActor<T: IEnforcer + 'static> {
+    pub enforcer: Option<Arc<RwLock<T>>>,
 }
 
-impl CasbinActor {
-    pub async fn new<M: TryIntoModel, A: TryIntoAdapter>(m: M, a: A) -> Result<Addr<CasbinActor>> {
-        let enforcer: Enforcer = Enforcer::new(m, a).await?;
+impl<T: IEnforcer + 'static> CasbinActor<T> {
+    pub async fn new<M: TryIntoModel, A: TryIntoAdapter>(
+        m: M,
+        a: A,
+    ) -> Result<Addr<CasbinActor<T>>> {
+        let enforcer = T::new(m, a).await?;
         Ok(Supervisor::start(|_| CasbinActor {
             enforcer: Some(Arc::new(RwLock::new(enforcer))),
         }))
     }
+
+    pub async fn set_enforcer(e: Arc<RwLock<T>>) -> Result<Addr<CasbinActor<T>>> {
+        Ok(Supervisor::start(|_| CasbinActor { enforcer: Some(e) }))
+    }
+
+    pub async fn get_enforcer(&mut self) -> Option<Arc<RwLock<T>>> {
+        self.enforcer.as_ref().map(|x| Arc::clone(x))
+    }
 }
 
-impl Actor for CasbinActor {
+impl<T: IEnforcer + 'static> Actor for CasbinActor<T> {
     type Context = Context<Self>;
 }
 
-impl Supervised for CasbinActor {
+impl<T: IEnforcer + 'static> Supervised for CasbinActor<T> {
     fn restarting(&mut self, _: &mut Self::Context) {
         self.enforcer.take();
     }
 }
 
-impl Handler<CasbinCmd> for CasbinActor {
+impl<T: IEnforcer + 'static> Handler<CasbinCmd> for CasbinActor<T> {
     type Result = ResponseActFuture<Self, Result<CasbinResult>>;
 
     fn handle(&mut self, msg: CasbinCmd, _: &mut Self::Context) -> Self::Result {
