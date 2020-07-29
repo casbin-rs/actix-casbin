@@ -31,7 +31,7 @@ async fn main() -> Result<()> {
 
     let a = FileAdapter::new("examples/rbac_policy.csv");
 
-    let addr = CasbinActor::new(m, a).await?;
+    let addr = CasbinActor::<Enforcer>::new(m, a).await?;
 
     let res = addr
         .send(CasbinCmd::Enforce(
