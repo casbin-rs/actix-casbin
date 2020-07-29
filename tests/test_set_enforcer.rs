@@ -12,7 +12,9 @@ async fn test_set_enforcer() {
     let casbin_middleware = CasbinService::new(m, a).await;
     let enforcer = casbin_middleware.get_enforcer().await;
 
-    let addr = CasbinActor::set_enforcer(enforcer).await.unwrap();
+    let addr = CasbinActor::<CachedEnforcer>::set_enforcer(enforcer)
+        .await
+        .unwrap();
     if let CasbinResult::Enforce(test_enforce) = addr
         .send(CasbinCmd::Enforce(
             vec!["alice", "data1", "read"]
