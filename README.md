@@ -22,7 +22,7 @@ actix-rt = "1.1.1"
 1. Using actix-casbin as actor alone
 
 ```rust
-use actix_casbin::casbin::{DefaultModel, FileAdapter, Result};
+use actix_casbin::casbin::{DefaultModel, FileAdapter, Result, Enforcer};
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
 
 #[actix_rt::main]
@@ -56,9 +56,9 @@ async fn main() -> Result<()> {
 ```
 2. Use actix-casbin with casbin actix middleware [actix-casbin-auth](https://github.com/casbin-rs/actix-casbin-auth)
 ```rust
+use actix_casbin::casbin::{DefaultModel, FileAdapter, Result, CachedEnforcer};
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
 use actix_casbin_auth::CasbinService;
-use casbin::prelude::*;
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
