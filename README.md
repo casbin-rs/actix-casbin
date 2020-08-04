@@ -12,7 +12,7 @@
 Add it to `Cargo.toml`
 
 ```rust
-actix-casbin = "0.3.0"
+actix-casbin = "0.3.1"
 actix-rt = "1.1.1"
 ```
 
@@ -66,7 +66,7 @@ async fn main() -> Result<()> {
         .await?;
     let a = FileAdapter::new("examples/rbac_policy.csv");
 
-    let casbin_middleware = CasbinService::new(m, a).await;
+    let mut casbin_middleware = CasbinService::new(m, a).await;
     let enforcer = casbin_middleware.get_enforcer().await;
 
     let addr = CasbinActor::<CachedEnforcer>::set_enforcer(enforcer)
