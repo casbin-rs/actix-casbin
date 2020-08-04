@@ -15,6 +15,7 @@ path = "src/lib.rs"
 [dependencies]
 actix =  "0.9.0"
 casbin = { version = "1.1.2", default-features = false, features = [ "incremental" ] }
+actix-casbin-auth = {version = "0.3.1", default-features = false }
 tokio = { version = "0.2.21", default-features = false, optional = true }
 async-std = { version = "1.6.2", default-features = false, optional = true }
 futures = "0.3"
@@ -29,4 +30,3 @@ runtime-async-std = ["casbin/runtime-async-std", "async-std/std", "actix-casbin-
 tokio = { version = "0.2.21", features = [ "full" ] }
 async-std = { version = "1.6.2", features = [ "attributes" ] }
 actix-rt = "1.1.1"
-actix-casbin-auth = {version = "0.3.0", default-features = false }
