@@ -14,6 +14,12 @@ pub enum CasbinCmd {
     Enforce(Vec<String>),
     AddPolicy(Vec<String>),
     AddPolicies(Vec<Vec<String>>),
+    AddNamedPolicy(String, Vec<String>),
+    AddNamedPolicies(String, Vec<Vec<String>>),
+    AddGroupingPolicy(Vec<String>),
+    AddGroupingPolicies(Vec<Vec<String>>),
+    AddNamedGroupingPolicy(String, Vec<String>),
+    AddNamedGroupingPolicies(String, Vec<Vec<String>>),
     RemovePolicy(Vec<String>),
     RemovePolicies(Vec<Vec<String>>),
     RemoveFilteredPolicy(usize, Vec<String>),
@@ -29,6 +35,12 @@ pub enum CasbinResult {
     Enforce(bool),
     AddPolicy(bool),
     AddPolicies(bool),
+    AddNamedPolicy(bool),
+    AddNamedPolicies(bool),
+    AddGroupingPolicy(bool),
+    AddGroupingPolicies(bool),
+    AddNamedGroupingPolicy(bool),
+    AddNamedGroupingPolicies(bool),
     RemovePolicy(bool),
     RemovePolicies(bool),
     RemoveFilteredPolicy(bool),
@@ -104,6 +116,12 @@ impl<T: IEnforcer + 'static> Handler<CasbinCmd> for CasbinActor<T> {
                         .add_policies(policy)
                         .await
                         .map(CasbinResult::AddPolicies),
+                    CasbinCmd::AddNamedPolicy(ptype, policy) => lock.add_named_policy(&ptype,policy).await.map(CasbinResult::AddNamedPolicy),
+                    CasbinCmd::AddNamedPolicies(ptype, policy) => lock.add_named_policies(&ptype,policy).await.map(CasbinResult::AddNamedPolicies),
+                    CasbinCmd::AddGroupingPolicy(policy) => lock.add_grouping_policy(policy).await.map(CasbinResult::AddGroupingPolicy),
+                    CasbinCmd::AddGroupingPolicies(policy) => lock.add_grouping_policies(policy).await.map(CasbinResult::AddGroupingPolicies),
+                    CasbinCmd::AddNamedGroupingPolicy(ptype, policy) => lock.add_named_grouping_policy(&ptype, policy).await.map(CasbinResult::AddNamedGroupingPolicy),
+                    CasbinCmd::AddNamedGroupingPolicies(ptype, policy) => lock.add_named_grouping_policies(&ptype, policy).await.map(CasbinResult::AddNamedGroupingPolicies),
                     CasbinCmd::RemovePolicy(policy) => lock
                         .remove_policy(policy)
                         .await
