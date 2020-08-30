@@ -22,7 +22,14 @@ pub enum CasbinCmd {
     AddNamedGroupingPolicies(String, Vec<Vec<String>>),
     RemovePolicy(Vec<String>),
     RemovePolicies(Vec<Vec<String>>),
-    RemoveFilteredPolicy(usize, Vec<String>),
+    RemoveNamedPolicy(String, Vec<String>),
+    RemoveNamedPolicies(String, Vec<Vec<String>>),
+    RemoveGroupingPolicy(Vec<String>),
+    RemoveGroupingPolicies(Vec<Vec<String>>),
+    RemoveNamedGroupingPolicy(String, Vec<String>),
+    RemoveNamedGroupingPolicies(String, Vec<Vec<String>>),
+    RemoveFilteredNamedPolicy(String, usize, Vec<String>),
+    RemoveFilteredNamedGroupingPolicy(String, usize, Vec<String>),
     AddRoleForUser(String, String, Option<String>),
     AddRolesForUser(String, Vec<String>, Option<String>),
     DeleteRoleForUser(String, String, Option<String>),
@@ -43,7 +50,14 @@ pub enum CasbinResult {
     AddNamedGroupingPolicies(bool),
     RemovePolicy(bool),
     RemovePolicies(bool),
-    RemoveFilteredPolicy(bool),
+    RemoveNamedPolicy(bool),
+    RemoveNamedPolicies(bool),
+    RemoveGroupingPolicy(bool),
+    RemoveGroupingPolicies(bool),
+    RemoveNamedGroupingPolicy(bool),
+    RemoveNamedGroupingPolicies(bool),
+    RemoveFilteredNamedPolicy(bool),
+    RemoveFilteredNamedGroupingPolicy(bool),
     AddRoleForUser(bool),
     AddRolesForUser(bool),
     DeleteRoleForUser(bool),
@@ -71,11 +85,11 @@ impl<T: IEnforcer + 'static> CasbinActor<T> {
         }))
     }
 
-    pub async fn set_enforcer(e: Arc<RwLock<T>>) -> Result<Addr<CasbinActor<T>>> {
-        Ok(Supervisor::start(|_| CasbinActor { enforcer: Some(e) }))
+    pub fn set_enforcer(e: Arc<RwLock<T>>) -> Result<CasbinActor<T>> {
+        Ok(CasbinActor { enforcer: Some(e) })
     }
 
-    pub async fn get_enforcer(&mut self) -> Option<Arc<RwLock<T>>> {
+    pub fn get_enforcer(&mut self) -> Option<Arc<RwLock<T>>> {
         self.enforcer.as_ref().map(|x| Arc::clone(x))
     }
 }
@@ -99,7 +113,7 @@ impl<T: IEnforcer + 'static> Handler<CasbinCmd> for CasbinActor<T> {
             None => {
                 return Box::new(actix::fut::err(CasbinError::IoError(Error::new(
                     ErrorKind::NotConnected,
-                    "Enforcer droped!",
+                    "Enforcer dropped!",
                 ))))
             }
         };
@@ -107,7 +121,7 @@ impl<T: IEnforcer + 'static> Handler<CasbinCmd> for CasbinActor<T> {
         Box::new(
             async move {
                 let mut lock = cloned_enforcer.write().await;
-                match msg {
+                let result = match msg {
                     CasbinCmd::Enforce(policy) => lock.enforce(&policy).map(CasbinResult::Enforce),
                     CasbinCmd::AddPolicy(policy) => {
                         lock.add_policy(policy).await.map(CasbinResult::AddPolicy)
@@ -140,6 +154,30 @@ impl<T: IEnforcer + 'static> Handler<CasbinCmd> for CasbinActor<T> {
                         .add_named_grouping_policies(&ptype, policy)
                         .await
                         .map(CasbinResult::AddNamedGroupingPolicies),
+                    CasbinCmd::RemoveNamedPolicy(ptype, policy) => lock
+                        .remove_named_policy(&ptype, policy)
+                        .await
+                        .map(CasbinResult::RemoveNamedPolicy),
+                    CasbinCmd::RemoveNamedPolicies(ptype, policy) => lock
+                        .remove_named_policies(&ptype, policy)
+                        .await
+                        .map(CasbinResult::RemoveNamedPolicies),
+                    CasbinCmd::RemoveGroupingPolicy(policy) => lock
+                        .remove_grouping_policy(policy)
+                        .await
+                        .map(CasbinResult::RemoveGroupingPolicy),
+                    CasbinCmd::RemoveGroupingPolicies(policy) => lock
+                        .remove_grouping_policies(policy)
+                        .await
+                        .map(CasbinResult::RemoveGroupingPolicies),
+                    CasbinCmd::RemoveNamedGroupingPolicy(ptype, policy) => lock
+                        .remove_named_grouping_policy(&ptype, policy)
+                        .await
+                        .map(CasbinResult::RemoveNamedGroupingPolicy),
+                    CasbinCmd::RemoveNamedGroupingPolicies(ptype, policy) => lock
+                        .remove_named_grouping_policies(&ptype, policy)
+                        .await
+                        .map(CasbinResult::RemoveNamedGroupingPolicies),
                     CasbinCmd::RemovePolicy(policy) => lock
                         .remove_policy(policy)
                         .await
@@ -148,10 +186,14 @@ impl<T: IEnforcer + 'static> Handler<CasbinCmd> for CasbinActor<T> {
                         .remove_policies(policy)
                         .await
                         .map(CasbinResult::RemovePolicies),
-                    CasbinCmd::RemoveFilteredPolicy(idx, policy) => lock
-                        .remove_filtered_policy(idx, policy)
+                    CasbinCmd::RemoveFilteredNamedPolicy(ptype, idx, policy) => lock
+                        .remove_filtered_named_policy(&ptype, idx, policy)
                         .await
-                        .map(CasbinResult::RemoveFilteredPolicy),
+                        .map(CasbinResult::RemoveFilteredNamedPolicy),
+                    CasbinCmd::RemoveFilteredNamedGroupingPolicy(ptype, idx, policy) => lock
+                        .remove_filtered_named_grouping_policy(&ptype, idx, policy)
+                        .await
+                        .map(CasbinResult::RemoveFilteredNamedGroupingPolicy),
                     CasbinCmd::AddRoleForUser(user, roles, domain) => lock
                         .add_role_for_user(&user, &roles, domain.as_deref())
                         .await
@@ -178,7 +220,9 @@ impl<T: IEnforcer + 'static> Handler<CasbinCmd> for CasbinActor<T> {
                             lock.get_implicit_permissions_for_user(&name, domain.as_deref()),
                         ))
                     }
-                }
+                };
+                drop(lock);
+                result
             }
             .into_actor(self)
             .map(|res, _act, _ctx| res),

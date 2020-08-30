@@ -1,12 +1,5 @@
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
 use casbin::prelude::*;
-use std::sync::Arc;
-
-#[cfg(feature = "runtime-tokio")]
-use tokio::sync::RwLock;
-
-#[cfg(feature = "runtime-async-std")]
-use async_std::sync::RwLock;
 
 #[actix_rt::test]
 async fn test_enforcer() {
@@ -14,8 +7,7 @@ async fn test_enforcer() {
         .await
         .unwrap();
     let a = FileAdapter::new("examples/rbac_policy.csv");
-    let e = Arc::new(RwLock::new(Enforcer::new(m, a).await.unwrap()));
-    let addr = CasbinActor::<Enforcer>::set_enforcer(e).await.unwrap();
+    let addr = CasbinActor::<Enforcer>::new(m, a).await.unwrap();
 
     if let CasbinResult::Enforce(test_enforce) = addr
         .send(CasbinCmd::Enforce(
@@ -38,8 +30,7 @@ async fn test_enforcer_threads() {
         .await
         .unwrap();
     let a = FileAdapter::new("examples/rbac_policy.csv");
-    let e = Arc::new(RwLock::new(Enforcer::new(m, a).await.unwrap()));
-    let addr = CasbinActor::<Enforcer>::set_enforcer(e).await.unwrap();
+    let addr = CasbinActor::<Enforcer>::new(m, a).await.unwrap();
 
     for _ in 0..8 {
         let clone_addr = addr.clone();
@@ -67,8 +58,7 @@ async fn test_policy_command() {
         .await
         .unwrap();
     let a = FileAdapter::new("examples/rbac_policy.csv");
-    let e = Arc::new(RwLock::new(Enforcer::new(m, a).await.unwrap()));
-    let addr = CasbinActor::<Enforcer>::set_enforcer(e).await.unwrap();
+    let addr = CasbinActor::<Enforcer>::new(m, a).await.unwrap();
 
     if let CasbinResult::RemovePolicy(remove_policy) = addr
         .send(CasbinCmd::RemovePolicy(
@@ -84,8 +74,9 @@ async fn test_policy_command() {
         assert_eq!(true, remove_policy);
     }
 
-    if let CasbinResult::RemoveFilteredPolicy(remove_filtered_policy) = addr
-        .send(CasbinCmd::RemoveFilteredPolicy(
+    if let CasbinResult::RemoveFilteredNamedPolicy(remove_filtered_policy) = addr
+        .send(CasbinCmd::RemoveFilteredNamedPolicy(
+            "p".to_string(),
             1,
             vec!["data2"].iter().map(|s| s.to_string()).collect(),
         ))
@@ -153,8 +144,7 @@ async fn test_roles_command() {
         .await
         .unwrap();
     let a = FileAdapter::new("examples/rbac_policy.csv");
-    let e = Arc::new(RwLock::new(Enforcer::new(m, a).await.unwrap()));
-    let addr = CasbinActor::<Enforcer>::set_enforcer(e).await.unwrap();
+    let addr = CasbinActor::<Enforcer>::new(m, a).await.unwrap();
 
     if let CasbinResult::AddRoleForUser(add_role_for_user) = addr
         .send(CasbinCmd::AddRoleForUser(
@@ -214,8 +204,7 @@ async fn test_implicit_roles_command() {
         .await
         .unwrap();
     let a = FileAdapter::new("examples/rbac_with_hierarchy_policy.csv");
-    let e = Arc::new(RwLock::new(Enforcer::new(m, a).await.unwrap()));
-    let addr = CasbinActor::<Enforcer>::set_enforcer(e).await.unwrap();
+    let addr = CasbinActor::<Enforcer>::new(m, a).await.unwrap();
 
     if let CasbinResult::GetImplicitRolesForUser(implicit_roles_alice) = addr
         .send(CasbinCmd::GetImplicitRolesForUser(
@@ -248,8 +237,7 @@ async fn test_implicit_permissions_command() {
         .await
         .unwrap();
     let a = FileAdapter::new("examples/rbac_with_hierarchy_policy.csv");
-    let e = Arc::new(RwLock::new(Enforcer::new(m, a).await.unwrap()));
-    let addr = CasbinActor::<Enforcer>::set_enforcer(e).await.unwrap();
+    let addr = CasbinActor::<Enforcer>::new(m, a).await.unwrap();
 
     if let CasbinResult::GetImplicitPermissionsForUser(implicit_permissions_alice) = addr
         .send(CasbinCmd::GetImplicitPermissionsForUser(
