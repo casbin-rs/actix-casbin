@@ -1,3 +1,4 @@
+use actix::Actor;
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
 use actix_casbin_auth::CasbinService;
 use casbin::prelude::*;
@@ -10,11 +11,11 @@ async fn test_set_enforcer() {
     let a = FileAdapter::new("examples/rbac_policy.csv");
 
     let mut casbin_middleware = CasbinService::new(m, a).await;
-    let enforcer = casbin_middleware.get_enforcer().await;
+    let enforcer = casbin_middleware.get_enforcer();
 
     let addr = CasbinActor::<CachedEnforcer>::set_enforcer(enforcer)
-        .await
-        .unwrap();
+        .unwrap()
+        .start();
     if let CasbinResult::Enforce(test_enforce) = addr
         .send(CasbinCmd::Enforce(
             vec!["alice", "data1", "read"]
