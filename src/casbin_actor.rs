@@ -122,7 +122,7 @@ impl<T: IEnforcer + 'static> Handler<CasbinCmd> for CasbinActor<T> {
             async move {
                 let mut lock = cloned_enforcer.write().await;
                 let result = match msg {
-                    CasbinCmd::Enforce(policy) => lock.enforce(&policy).map(CasbinResult::Enforce),
+                    CasbinCmd::Enforce(policy) => lock.enforce(policy).map(CasbinResult::Enforce),
                     CasbinCmd::AddPolicy(policy) => {
                         lock.add_policy(policy).await.map(CasbinResult::AddPolicy)
                     }
