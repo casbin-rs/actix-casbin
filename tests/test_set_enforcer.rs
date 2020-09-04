@@ -10,7 +10,7 @@ async fn test_set_enforcer() {
         .unwrap();
     let a = FileAdapter::new("examples/rbac_policy.csv");
 
-    let mut casbin_middleware = CasbinService::new(m, a).await;
+    let mut casbin_middleware = CasbinService::new(m, a).await.unwrap();
     let enforcer = casbin_middleware.get_enforcer();
 
     let addr = CasbinActor::<CachedEnforcer>::set_enforcer(enforcer)
