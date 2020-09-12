@@ -111,14 +111,14 @@ impl<T: IEnforcer + 'static> Handler<CasbinCmd> for CasbinActor<T> {
         let e = match &self.enforcer {
             Some(x) => x,
             None => {
-                return Box::new(actix::fut::err(CasbinError::IoError(Error::new(
+                return Box::pin(actix::fut::err(CasbinError::IoError(Error::new(
                     ErrorKind::NotConnected,
                     "Enforcer dropped!",
                 ))))
             }
         };
         let cloned_enforcer = Arc::clone(e);
-        Box::new(
+        Box::pin(
             async move {
                 let mut lock = cloned_enforcer.write().await;
                 let result = match msg {
