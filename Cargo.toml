@@ -13,20 +13,20 @@ name = "actix_casbin"
 path = "src/lib.rs"
 
 [dependencies]
-actix =  "0.10.0"
+actix =  "0.11"
 casbin = { version = "2.0.1", default-features = false, features = [ "incremental", "cached"] }
-actix-casbin-auth = { version = "0.4.3", default-features = false }
-tokio = { version = "0.2.22", default-features = false, optional = true }
-async-std = { version = "1.6.3", default-features = false, optional = true }
+actix-casbin-auth = { git = "https://github.com/casbin-rs/actix-casbin-auth", branch = "master" }
+tokio = { version = "1.1.1", default-features = false, optional = true }
+async-std = { version = "1.9.0", default-features = false, optional = true }
 futures = "0.3"
 
 [features]
-default = ["runtime-async-std"]
+default = ["runtime-tokio"]
 
 runtime-tokio = ["casbin/runtime-tokio", "tokio/sync", "actix-casbin-auth/runtime-tokio"]
 runtime-async-std = ["casbin/runtime-async-std", "async-std/std", "actix-casbin-auth/runtime-async-std"]
 
 [dev-dependencies]
-tokio = { version = "0.2.22", features = [ "full" ] }
-async-std = { version = "1.6.3", features = [ "attributes" ] }
-actix-rt = "1.1.1"
+tokio = { version = "1.1.1", features = [ "full" ] }
+async-std = { version = "1.9.0", features = [ "attributes" ] }
+actix-rt = "2.1.0"
