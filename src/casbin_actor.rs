@@ -90,7 +90,7 @@ impl<T: IEnforcer + 'static> CasbinActor<T> {
     }
 
     pub fn get_enforcer(&mut self) -> Option<Arc<RwLock<T>>> {
-        self.enforcer.as_ref().map(|x| Arc::clone(x))
+        self.enforcer.as_ref().map(Arc::clone)
     }
 }
 
