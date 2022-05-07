@@ -2,7 +2,7 @@
 name = "actix-casbin"
 version = "0.4.2"
 authors = ["Eason Chai <hackerchai.com@gmail.com>","Cheng JIANG <jiang.cheng@vip.163.com>"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0"
 description = "An Actix actor for casbin"
 homepage="https://github.com/casbin-rs/actix-casbin"
