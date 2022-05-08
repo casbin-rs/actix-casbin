@@ -16,7 +16,7 @@ path = "src/lib.rs"
 actix =  "0.13.0"
 casbin = { version = "2.0.9", default-features = false, features = [ "incremental", "cached"] }
 actix-casbin-auth = { version = "0.4.4", default-features = false }
-tokio = { version = "1.18.1", default-features = false, optional = true }
+tokio = { version = "0.2.22", default-features = false, optional = true }
 async-std = { version = "1.11.0", default-features = false, optional = true }
 futures = "0.3.21"
 
