@@ -1,6 +1,6 @@
 use actix::prelude::*;
 use casbin::prelude::*;
-use casbin::{Error as CasbinError, IEnforcer, Result};
+use casbin::{Error as CasbinError};
 use std::io::{Error, ErrorKind};
 use std::sync::Arc;
 
@@ -90,7 +90,7 @@ impl<T: IEnforcer + 'static> CasbinActor<T> {
     }
 
     pub fn get_enforcer(&mut self) -> Option<Arc<RwLock<T>>> {
-        self.enforcer.as_ref().map(Arc::clone)
+        self.enforcer.clone()
     }
 }
 
