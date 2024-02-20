@@ -1,6 +1,6 @@
 use actix::prelude::*;
 use casbin::prelude::*;
-use casbin::{Error as CasbinError};
+use casbin::Error as CasbinError;
 use std::io::{Error, ErrorKind};
 use std::sync::Arc;
 
